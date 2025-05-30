@@ -1,0 +1,87 @@
+/* CSS styles */
+body {
+    font-family: sans-serif;
+    text-align: center;
+    margin: 20px;
+    padding: 0;
+    background-color: #f4f4f4;
+    color: #333;
+}
+
+h1 {
+    color: #333;
+}
+
+#image-container {
+    width: 280px;
+    height: 280px;
+    margin: 30px auto; /* Increased margin for better spacing */
+    border: 2px solid #333; /* Slightly thicker border */
+    box-shadow: 0 4px 8px rgba(0,0,0,0.1); /* Added subtle shadow */
+    position: relative; /* For potential future absolute positioning of elements inside */
+    background-color: #fff; /* White background for the canvas area */
+}
+
+#mnist-canvas {
+    display: block;
+    width: 100%;
+    height: 100%;
+}
+
+#new-image-button {
+    padding: 12px 25px; /* Slightly larger padding */
+    margin-top: 25px;  /* Increased margin */
+    font-size: 1em;    /* Relative font size */
+    cursor: pointer;
+    background-color: #007bff; /* Bootstrap primary blue */
+    color: white;
+    border: none;
+    border-radius: 5px; /* Rounded corners */
+    transition: background-color 0.3s ease; /* Smooth transition for hover effect */
+}
+
+#new-image-button:hover {
+    background-color: #0056b3; /* Darker blue on hover */
+}
+
+/* Media Queries for Responsiveness */
+@media (max-width: 768px) { /* For tablets and smaller */
+    #image-container {
+        width: 70vw; /* Use viewport width */
+        height: 70vw; /* Maintain aspect ratio */
+        margin: 20px auto;
+    }
+
+    h1 {
+        font-size: 1.8em;
+    }
+
+    #new-image-button {
+        padding: 10px 20px;
+        font-size: 0.9em;
+    }
+}
+
+@media (max-width: 480px) { /* For mobile phones */
+    body {
+        margin: 10px;
+    }
+
+    #image-container {
+        width: 90vw; /* Larger percentage for smaller screens */
+        height: 90vw; /* Maintain aspect ratio */
+        margin: 15px auto;
+        border-width: 1px; /* Thinner border on small screens */
+    }
+
+    h1 {
+        font-size: 1.5em;
+    }
+
+    #new-image-button {
+        padding: 8px 15px;
+        font-size: 0.8em;
+        width: 80%; /* Make button wider */
+        margin-top: 20px;
+    }
+}

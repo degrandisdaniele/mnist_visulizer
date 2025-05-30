@@ -1,0 +1,71 @@
+# ... existing code ...
+*.elf
+
+# Debug and Release build outputs
+Debug/
+Release/
+[Dd]ebug/
+[Rr]elease/
+
+# Object files
+*.o
+*.obj
+
+# Dependency files
+*.d
+
+# Linker map files
+*.map
+
+# Stack usage files (common in some ARM compilers)
+*.su
+
+# Other common build artifacts
+*.bak
+*.tmp
+*.lst
+*.gpdsc
+
+
+# Virtual Environment
+.venv/
+venv/
+ENV/
+env/
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+
+# IDE / Editor specific
+.vscode/
+.idea/
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+*.sublime-workspace
+
+# Distribution / packaging
+.Python
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+pip-wheel-metadata/
+share/python-wheels/
+*.egg-info/
+.installed.cfg
+*.egg
+MANIFEST
+
+# Output files
+immagine_catturata.txt
