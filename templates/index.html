@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MNIST Image Viewer</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+    <h1>MNIST Random Image Viewer</h1>
+    <div id="image-container">
+        <canvas id="mnist-canvas" width="280" height="280"></canvas>
+    </div>
+    <button id="new-image-button">Genera Nuova Immagine</button>
+
+    <script>
+        const canvas = document.getElementById('mnist-canvas');
+        const ctx = canvas.getContext('2d');
+
+        function drawImage(imageData) {
+            ctx.clearRect(0, 0, canvas.width, canvas.height); // Clear canvas
+            const pixelSize = 10; // Each original pixel will be 10x10 on canvas
+            imageData.forEach((row, rowIndex) => {
+                row.forEach((pixelValue, colIndex) => {
+                    ctx.fillStyle = `rgb(${pixelValue}, ${pixelValue}, ${pixelValue})`;
+                    ctx.fillRect(colIndex * pixelSize, rowIndex * pixelSize, pixelSize, pixelSize);
+                });
+            });
+        }
+
+        async function fetchAndDisplayImage() {
+            try {
+                const response = await fetch('/get_mnist_image');
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
+                const data = await response.json();
+                if (data.image) {
+                    drawImage(data.image);
+                } else {
+                    console.error('Image data not found in response:', data);
+                }
+            } catch (error) {
+                console.error('Error fetching or displaying image:', error);
+                // Display a user-friendly error on the canvas or page
+                ctx.clearRect(0, 0, canvas.width, canvas.height);
+                ctx.fillStyle = 'red';
+                ctx.font = '16px Arial';
+                ctx.textAlign = 'center';
+                ctx.fillText('Error loading image.', canvas.width / 2, canvas.height / 2);
+            }
+        }
+
+        document.getElementById('new-image-button').addEventListener('click', fetchAndDisplayImage);
+
+        // Load initial image when the script runs
+        fetchAndDisplayImage();
+    </script>
+</body>
+</html>
