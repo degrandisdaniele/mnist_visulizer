@@ -11,21 +11,45 @@
     <div id="image-container">
         <canvas id="mnist-canvas" width="280" height="280"></canvas>
     </div>
-    <button id="new-image-button">Genera Nuova Immagine</button>
+    <div id="controls">
+        <button id="new-image-button">Genera Nuova Immagine</button>
+        <button id="zoom-in-button">+</button>
+        <button id="zoom-out-button">-</button>
+    </div>
 
     <script>
         const canvas = document.getElementById('mnist-canvas');
         const ctx = canvas.getContext('2d');
+        const zoomInButton = document.getElementById('zoom-in-button');
+        const zoomOutButton = document.getElementById('zoom-out-button');
+        const newImageButton = document.getElementById('new-image-button');
 
-        function drawImage(imageData) {
-            ctx.clearRect(0, 0, canvas.width, canvas.height); // Clear canvas
-            const pixelSize = 10; // Each original pixel will be 10x10 on canvas
-            imageData.forEach((row, rowIndex) => {
-                row.forEach((pixelValue, colIndex) => {
-                    ctx.fillStyle = `rgb(${pixelValue}, ${pixelValue}, ${pixelValue})`;
-                    ctx.fillRect(colIndex * pixelSize, rowIndex * pixelSize, pixelSize, pixelSize);
-                });
-            });
+        let currentImageData = null;
+        let currentScale = 1.0;
+        let offsetX = 0;
+        let offsetY = 0;
+        let isDragging = false;
+        let lastMouseX = 0;
+        let lastMouseY = 0;
+        const basePixelSize = 10; // Original drawn size of one MNIST pixel at scale 1.0
+
+        function redrawImage() {
+            if (!currentImageData) return;
+
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            const scaledPixelSize = basePixelSize * currentScale;
+
+            // The MNIST image is 28x28 pixels
+            for (let row = 0; row < 28; row++) {
+                for (let col = 0; col < 28; col++) {
+                    const value = currentImageData[row][col];
+                    ctx.fillStyle = `rgb(${value},${value},${value})`;
+                    // drawX and drawY are the top-left coordinates for this scaled pixel on the canvas
+                    const drawX = offsetX + col * scaledPixelSize;
+                    const drawY = offsetY + row * scaledPixelSize;
+                    ctx.fillRect(drawX, drawY, scaledPixelSize, scaledPixelSize);
+                }
+            }
         }
 
         async function fetchAndDisplayImage() {
@@ -36,13 +60,28 @@
                 }
                 const data = await response.json();
                 if (data.image) {
-                    drawImage(data.image);
+                    currentImageData = data.image;
+                    // Reset view state for new image
+                    currentScale = 1.0;
+                    offsetX = 0; // Initial offset: image top-left at canvas top-left
+                    offsetY = 0;
+                    // Optional: Center the image initially if it's smaller than canvas
+                    // const initialScaledWidth = 28 * basePixelSize * currentScale;
+                    // const initialScaledHeight = 28 * basePixelSize * currentScale;
+                    // if (initialScaledWidth < canvas.width) {
+                    //     offsetX = (canvas.width - initialScaledWidth) / 2;
+                    // }
+                    // if (initialScaledHeight < canvas.height) {
+                    //     offsetY = (canvas.height - initialScaledHeight) / 2;
+                    // }
+                    redrawImage();
                 } else {
                     console.error('Image data not found in response:', data);
+                    currentImageData = null;
                 }
             } catch (error) {
                 console.error('Error fetching or displaying image:', error);
-                // Display a user-friendly error on the canvas or page
+                currentImageData = null;
                 ctx.clearRect(0, 0, canvas.width, canvas.height);
                 ctx.fillStyle = 'red';
                 ctx.font = '16px Arial';
@@ -51,9 +90,28 @@
             }
         }
 
-        document.getElementById('new-image-button').addEventListener('click', fetchAndDisplayImage);
+        document.getElementById('new-image-button').addEventListener('click', () => {
+            // Reset zoom to default when fetching a new image, or keep current zoom?
+            // For now, let's say it resets zoom for simplicity, though this could be a UX choice.
+            // currentPixelSize = 10; // Uncomment to reset zoom on new image
+            fetchAndDisplayImage();
+        });
 
-        // Load initial image when the script runs
+        document.getElementById('zoom-in-button').addEventListener('click', () => {
+            if (currentImageData) {
+                currentPixelSize = Math.min(currentPixelSize + 2, MAX_PIXEL_SIZE);
+                drawImage(currentImageData, currentPixelSize);
+            }
+        });
+
+        document.getElementById('zoom-out-button').addEventListener('click', () => {
+            if (currentImageData) {
+                currentPixelSize = Math.max(currentPixelSize - 2, MIN_PIXEL_SIZE);
+                drawImage(currentImageData, currentPixelSize);
+            }
+        });
+
+        // Initial Load
         fetchAndDisplayImage();
     </script>
 </body>

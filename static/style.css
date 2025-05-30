@@ -10,45 +10,82 @@ body {
 
 h1 {
     color: #333;
+    margin-bottom: 20px; /* Added margin to separate from controls */
 }
 
 #image-container {
     width: 280px;
     height: 280px;
-    margin: 30px auto; /* Increased margin for better spacing */
-    border: 2px solid #333; /* Slightly thicker border */
-    box-shadow: 0 4px 8px rgba(0,0,0,0.1); /* Added subtle shadow */
-    position: relative; /* For potential future absolute positioning of elements inside */
-    background-color: #fff; /* White background for the canvas area */
+    margin: 30px auto;
+    border: 2px solid #333;
+    box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+    position: relative;
+    background-color: #fff;
+    overflow: hidden; /* Clip overflowing canvas content (for zoom/pan) */
 }
 
 #mnist-canvas {
     display: block;
     width: 100%;
     height: 100%;
+    /* The canvas itself will draw the image. If image is larger due to zoom,
+       it will be clipped by #image-container due to overflow:hidden. */
+}
+
+#controls {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 20px; /* Overall margin for the control group */
+    margin-top: 10px; /* Added some top margin for separation from canvas */
 }
 
 #new-image-button {
-    padding: 12px 25px; /* Slightly larger padding */
-    margin-top: 25px;  /* Increased margin */
-    font-size: 1em;    /* Relative font size */
+    padding: 12px 25px;
+    /* margin-top: 25px; */ /* Removed as margin is handled by #controls or individual button margins */
+    font-size: 1em;
     cursor: pointer;
-    background-color: #007bff; /* Bootstrap primary blue */
+    background-color: #007bff;
     color: white;
     border: none;
-    border-radius: 5px; /* Rounded corners */
-    transition: background-color 0.3s ease; /* Smooth transition for hover effect */
+    border-radius: 5px;
+    transition: background-color 0.3s ease;
 }
 
 #new-image-button:hover {
-    background-color: #0056b3; /* Darker blue on hover */
+    background-color: #0056b3;
 }
+
+#zoom-in-button,
+#zoom-out-button {
+    width: 40px;
+    height: 40px;
+    font-size: 20px;
+    line-height: 40px; /* Vertically center text for buttons */
+    padding: 0; /* Remove default padding to control size accurately */
+    border-radius: 50%; /* Make them circular */
+    cursor: pointer;
+    background-color: #6c757d; /* Bootstrap secondary color */
+    color: white;
+    border: none;
+    transition: background-color 0.3s ease;
+    display: flex; /* For centering content if needed, though line-height works for single char */
+    align-items: center;
+    justify-content: center;
+}
+
+#zoom-in-button:hover,
+#zoom-out-button:hover {
+    background-color: #545b62; /* Darker shade on hover */
+}
+
 
 /* Media Queries for Responsiveness */
 @media (max-width: 768px) { /* For tablets and smaller */
     #image-container {
-        width: 70vw; /* Use viewport width */
-        height: 70vw; /* Maintain aspect ratio */
+        width: 70vw;
+        height: 70vw;
         margin: 20px auto;
     }
 
@@ -60,6 +97,18 @@ h1 {
         padding: 10px 20px;
         font-size: 0.9em;
     }
+
+    #zoom-in-button,
+    #zoom-out-button {
+        width: 35px;
+        height: 35px;
+        font-size: 18px;
+        line-height: 35px;
+    }
+
+    #controls {
+        gap: 8px;
+    }
 }
 
 @media (max-width: 480px) { /* For mobile phones */
@@ -68,10 +117,10 @@ h1 {
     }
 
     #image-container {
-        width: 90vw; /* Larger percentage for smaller screens */
-        height: 90vw; /* Maintain aspect ratio */
+        width: 90vw;
+        height: 90vw;
         margin: 15px auto;
-        border-width: 1px; /* Thinner border on small screens */
+        border-width: 1px;
     }
 
     h1 {
@@ -79,9 +128,23 @@ h1 {
     }
 
     #new-image-button {
-        padding: 8px 15px;
+        padding: 10px 15px; /* Adjusted padding for smaller screens */
         font-size: 0.8em;
-        width: 80%; /* Make button wider */
-        margin-top: 20px;
+        /* width: 80%; /* Removed fixed width to allow flex to manage sizing */
+    }
+
+    #controls {
+        flex-wrap: wrap; /* Allow buttons to wrap on very small screens if needed */
+        gap: 10px; /* Ensure gap is maintained on wrap */
+        margin-top: 15px;
+        margin-bottom: 15px;
+    }
+
+    #zoom-in-button,
+    #zoom-out-button {
+        width: 40px; /* Keep zoom buttons a decent tap target size */
+        height: 40px;
+        font-size: 20px;
+        line-height: 40px;
     }
 }
