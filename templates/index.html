@@ -25,28 +25,32 @@
         const newImageButton = document.getElementById('new-image-button');
 
         let currentImageData = null;
-        let currentScale = 1.0;
+        let currentScale = 1.0; // Represents how much the image is scaled from its base size
         let offsetX = 0;
         let offsetY = 0;
         let isDragging = false;
         let lastMouseX = 0;
         let lastMouseY = 0;
-        const basePixelSize = 10; // Original drawn size of one MNIST pixel at scale 1.0 (280/28 = 10)
+        const basePixelSize = 10; // Original drawn size of one MNIST pixel at scale 1.0 (280px canvas / 28px MNIST = 10px per MNIST pixel)
 
-        // Define min/max zoom levels
-        const MIN_SCALE = 0.5;
-        const MAX_SCALE = 5.0;
+        // Define min/max zoom levels (in terms of currentScale)
+        // A single MNIST pixel should be at least 1px on canvas (1/basePixelSize)
+        const MIN_SCALE = 1 / basePixelSize; // Allows zooming out until each MNIST pixel is 1 canvas pixel
+        const MAX_SCALE = 20.0; // Arbitrary max zoom for now, can be adjusted
+        const ZOOM_STEP = 0.2; // How much zoom changes per click
 
         function redrawImage() {
             if (!currentImageData) return;
 
             ctx.clearRect(0, 0, canvas.width, canvas.height);
-            const scaledPixelSize = basePixelSize * currentScale;
+            const scaledPixelSize = basePixelSize * currentScale; // The actual size of one MNIST pixel on the canvas
 
+            // The MNIST image is 28x28 pixels
             for (let row = 0; row < 28; row++) {
                 for (let col = 0; col < 28; col++) {
                     const value = currentImageData[row][col];
                     ctx.fillStyle = `rgb(${value},${value},${value})`;
+                    // drawX and drawY are the top-left coordinates for this scaled pixel on the canvas
                     const drawX = offsetX + col * scaledPixelSize;
                     const drawY = offsetY + row * scaledPixelSize;
                     ctx.fillRect(drawX, drawY, scaledPixelSize, scaledPixelSize);
@@ -63,13 +67,21 @@
                 const data = await response.json();
                 if (data.image) {
                     currentImageData = data.image;
-                    // Reset view state for new image
-                    currentScale = 1.0;
-                    // Center the image initially
-                    const initialScaledWidth = 28 * basePixelSize * currentScale;
-                    const initialScaledHeight = 28 * basePixelSize * currentScale;
-                    offsetX = (canvas.width - initialScaledWidth) / 2;
-                    offsetY = (canvas.height - initialScaledHeight) / 2;
+                    // When fetching a new image, maintain the current zoom level and pan
+                    // If you wanted to reset zoom/pan, you would do:
+                    // currentScale = 1.0;
+                    // offsetX = 0;
+                    // offsetY = 0;
+                    
+                    // Recalculate offsets to keep the center of the image roughly in the same spot
+                    // This is a more sophisticated centering logic than just resetting to (0,0)
+                    if (currentScale === 1.0) { // Only center initially if default zoom
+                        const initialScaledWidth = 28 * basePixelSize * currentScale;
+                        const initialScaledHeight = 28 * basePixelSize * currentScale;
+                        offsetX = (canvas.width - initialScaledWidth) / 2;
+                        offsetY = (canvas.height - initialScaledHeight) / 2;
+                    }
+                    
                     redrawImage();
                 } else {
                     console.error('Image data not found in response:', data);
@@ -87,16 +99,19 @@
         }
 
         document.getElementById('new-image-button').addEventListener('click', () => {
-            fetchAndDisplayImage();
+            fetchAndDisplayImage(); // Fetches and displays a new image, maintaining current zoom/pan
         });
 
         document.getElementById('zoom-in-button').addEventListener('click', () => {
             if (currentImageData) {
                 const oldScale = currentScale;
-                currentScale = Math.min(currentScale + 0.2, MAX_SCALE);
-                // Adjust offset to zoom into the center of the canvas
-                offsetX -= (28 * basePixelSize * (currentScale - oldScale)) / 2;
-                offsetY -= (28 * basePixelSize * (currentScale - oldScale)) / 2;
+                currentScale = Math.min(currentScale + ZOOM_STEP, MAX_SCALE); // Increase scale, capped by MAX_SCALE
+                
+                // Adjust offset to zoom towards the center of the canvas
+                const zoomFactor = currentScale / oldScale;
+                offsetX = canvas.width / 2 - (canvas.width / 2 - offsetX) * zoomFactor;
+                offsetY = canvas.height / 2 - (canvas.height / 2 - offsetY) * zoomFactor;
+                
                 redrawImage();
             }
         });
@@ -104,10 +119,13 @@
         document.getElementById('zoom-out-button').addEventListener('click', () => {
             if (currentImageData) {
                 const oldScale = currentScale;
-                currentScale = Math.max(currentScale - 0.2, MIN_SCALE);
-                 // Adjust offset to zoom out from the center of the canvas
-                offsetX += (28 * basePixelSize * (oldScale - currentScale)) / 2;
-                offsetY += (28 * basePixelSize * (oldScale - currentScale)) / 2;
+                currentScale = Math.max(currentScale - ZOOM_STEP, MIN_SCALE); // Decrease scale, capped by MIN_SCALE
+
+                // Adjust offset to zoom away from the center of the canvas
+                const zoomFactor = currentScale / oldScale;
+                offsetX = canvas.width / 2 - (canvas.width / 2 - offsetX) * zoomFactor;
+                offsetY = canvas.height / 2 - (canvas.height / 2 - offsetY) * zoomFactor;
+
                 redrawImage();
             }
         });
@@ -140,7 +158,6 @@
             isDragging = false;
             canvas.style.cursor = 'grab';
         });
-
 
         // Initial Load
         fetchAndDisplayImage();
