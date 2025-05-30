@@ -1,12 +1,9 @@
-from flask import Flask, render_template, jsonify
-import tensorflow as tf
-import numpy as np
+from flask import Flask, render_template, jsonify, send_from_directory
 import os
+import random
+from PIL import Image # Import Pillow
 
 app = Flask(__name__)
-
-# Load MNIST dataset globally
-(x_train, y_train), (x_test, y_test) = tf.keras.datasets.mnist.load_data()
 
 @app.route('/')
 def index():
@@ -14,15 +11,22 @@ def index():
 
 @app.route('/get_mnist_image', methods=['GET'])
 def get_mnist_image():
-    # Select a random image from the training portion of the MNIST dataset
-    random_index = np.random.randint(0, x_train.shape[0])
-    image_data = x_train[random_index]
+    image_filenames = [f for f in os.listdir('public') if f.endswith('.png')]
+    if not image_filenames:
+        return jsonify({'error': 'No images found in public directory'}), 404
 
-    # Convert the image data to a nested list
-    image_data_list = image_data.tolist()
+    random_image_filename = random.choice(image_filenames)
+    image_path = os.path.join('public', random_image_filename)
 
-    # Return the image data as a JSON response
-    return jsonify({'image': image_data_list})
+    try:
+        img = Image.open(image_path).convert('L') # Open image and convert to grayscale
+        img_array = list(img.getdata()) # Get pixel data
+        # MNIST images are 28x28, so reshape the flat list into a 2D array
+        mnist_image_data = [img_array[i:i+28] for i in range(0, len(img_array), 28)]
+
+        return jsonify({'image': mnist_image_data})
+    except Exception as e:
+        return jsonify({'error': f'Error processing image: {str(e)}'}), 500
 
 if __name__ == '__main__':
     port = int(os.environ.get('PORT', 5000))
